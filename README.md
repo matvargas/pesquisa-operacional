@@ -1,1 +1,1 @@
-pesquisa-operacional
+## Simplex Tableau

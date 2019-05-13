@@ -1,5 +1,5 @@
 #!/usr/bin/python
-SHOW_OUTPUTS = True
+SHOW_OUTPUTS = False
 LOWER_VALUE = 10000
 
 def ShowTableau(c, a, b, certificate, optimal):
@@ -27,52 +27,50 @@ def Pivotate(which_row, which_column, c, a, b, certificate, operations, optimal)
     
     if(SHOW_OUTPUTS): print("Starting pivotation on a[{},{}]".format(which_row, which_column))
     
-    pivot = a[which_row][which_column]
+    pivot = round(a[which_row][which_column],4)
     if(SHOW_OUTPUTS): print("Pivot: {}".format(pivot))
     
     if(SHOW_OUTPUTS): print("Iterate A[{},{}] over the pivot: {}".format(which_row, which_column ,pivot))
     for i in range(len(a[which_row])):
         if(a[which_row][i] != 0):
-            a[which_row][i] = a[which_row][i]/pivot
+            a[which_row][i] = round((a[which_row][i]/pivot),4)
             
     if(SHOW_OUTPUTS): print(a)
     
     if(SHOW_OUTPUTS): print("Iterate b[{}] over the pivot: {}".format(which_row, pivot))
     if(b[which_row] != 0):
-        b[which_row] = b[which_row]/pivot
+        b[which_row] = round((b[which_row]/pivot),4)
      
     if(SHOW_OUTPUTS): print(b)
     
     if(SHOW_OUTPUTS): print("Iterate operations[{},{}] over the pivot: {}".format(which_row, which_column ,pivot))
     for i in range(len(operations[which_row])):
         if(operations[which_row][i] != 0):
-            operations[which_row][i] = operations[which_row][i]/pivot
+            operations[which_row][i] = round((operations[which_row][i]/pivot),4)
             
     if(SHOW_OUTPUTS): print(operations)
         
-    value = (c[which_column]/a[which_row][which_column]) * -1
+    value = round(((c[which_column]/a[which_row][which_column]) * -1),4)
     if(SHOW_OUTPUTS): print("The value: {} will be use to set 0 on c[{}] -> {}".format(value, which_column, c[which_column]))
     for i in range(len(a[which_row])):
         if(a[which_row][i] != 0):
-            c[i] = (c[i] + (a[which_row][i] * value))
+            c[i] = round((c[i] + (a[which_row][i] * value)),4)
     
-    print("b[which_row] = {} * value = {}".format(b[which_row], value))
-    print("Antes: {}".format(optimal))
-    optimal = optimal + (b[which_row] * value)
+    optimal = round((optimal + (b[which_row] * value)),4)
     if(SHOW_OUTPUTS):  print("Partial optimal: {}".format(optimal))
     
     for i in range(len(certificate)):
-        certificate[i] = (certificate[i] + (operations[which_row][i] * value))
+        certificate[i] = round((certificate[i] + (operations[which_row][i] * value)),4)
         
     for i in range(len(a)):
         if(i != which_row):
             if(a[i][which_column] != 0):
-                value = ((a[i][which_column]/a[which_row][which_column]) * -1)
+                value = round(((a[i][which_column]/a[which_row][which_column]) * -1),4)
                 
                 for j in range(len(a[0])):
-                    a[i][j] = (a[i][j] + (a[which_row][j] * value))
+                    a[i][j] = round((a[i][j] + (a[which_row][j] * value)),4)
             
-                b[i] = (b[i] + (b[which_row] * value))
+                b[i] = round((b[i] + (b[which_row] * value)),4)
                     
     return(c, a, b, certificate, operations, optimal)
     
@@ -117,8 +115,53 @@ def Primal(c, a, b, certificate, operations, optimal):
     if(SHOW_OUTPUTS): print("Starting primal")
     
     if(SHOW_OUTPUTS): print("Looking for lower negative value on C[]: {}".format(c))
-    lower_c_value_index = min(c)
-    print(lower_c_value_index)
+    
+    viable_bases = []
+    
+    lower_c_value_index = -1
+    lower_c_value = LOWER_VALUE
+    
+    for i in range(len(c)):
+        if(c[i] < lower_c_value):
+            lower_c_value = c[i]
+            lower_c_value_index = i
+    
+    while(lower_c_value < 0):
+        
+        if(SHOW_OUTPUTS): ShowTableau(c, a, b, certificate, optimal)
+        if(SHOW_OUTPUTS): print("Lower value is {} on c[{}]".format(lower_c_value, lower_c_value_index))
+        if(SHOW_OUTPUTS): print("Running tableau for c[{}]".format(lower_c_value_index))
+        
+        lower = LOWER_VALUE
+        
+        for i in range(len(b)):
+            if(b[i] != 0):
+                
+                if(SHOW_OUTPUTS): print("Minimizing: {}/{}".format(b[i],a[i][lower_c_value_index]))
+                    
+                a_entry = round(a[i][lower_c_value_index],4)  
+                    
+                if(a_entry != 0):
+                    
+                    b_over_a = round(b[i]/a_entry,4) 
+                
+                    if(b_over_a > 0 and b_over_a < lower):
+                        lower = b_over_a
+                        which_row = i
+                        which_column = lower_c_value_index
+        
+        if(SHOW_OUTPUTS): print("Lower value is {} on row #{}".format(lower, which_row))
+        
+        viable_bases.append((which_row,which_column))
+        c, a, b, certificate, operations, optimal = Pivotate(which_row, which_column, c, a, b, certificate, operations, optimal)
+        
+        lower_c_value_index = -1
+        lower_c_value = LOWER_VALUE
+
+        for i in range(len(c)):
+            if(c[i] < lower_c_value):
+                lower_c_value = c[i]
+                lower_c_value_index = i
     
     return(c, a, b, certificate, operations, optimal, viable_bases)
     
@@ -225,6 +268,15 @@ def Auxiliar(r, v, c, a, b):
     
     return
     
+def PrepareResult(v,c,a,b,viable_bases):
+    if(SHOW_OUTPUTS): print("Preparing result vector")
+    result = [0] * v
+    for i in range(len(viable_bases)):
+        if(SHOW_OUTPUTS): print("Partial result: {}".format(result))
+        if(SHOW_OUTPUTS): print("Define if {} will be shown on result".format(viable_bases[i][1]))
+        if(viable_bases[i][1] < len(result) - 1):
+            result[viable_bases[i][1]] = round(b[viable_bases[i][0]],1)
+    return result
         
 def SimplexTableau(r, v, c, a, b):
     
@@ -233,14 +285,24 @@ def SimplexTableau(r, v, c, a, b):
     if(any(n < 0 for n in c_verifier)):
         
         if(SHOW_OUTPUTS): print("c[] -> {} has a negative number, so we cannot use dual method.".format(c))
-            
-        b_verifier = [x * -1 for x in b]
         
-        if(any(n < 0 for n in b_verifier)):
+        if(any(n < 0 for n in b)):
             Auxiliar(r, v, c, a, b)
             return
         else:
-            Primal(c, a, b, certificate, operations, optimal)
+            certificate, operations, a , c = ConvertToStandardForm(r, v, c, a, b)
+            optimal = 0
+            c, a, b, certificate, operations, optimal, viable_bases = Primal(c, a, b, certificate, operations, optimal)
+            result = PrepareResult(v,c,a,b,viable_bases)
+            
+            for i in range(len(certificate)):
+                certificate[i] = round(certificate[i],1)
+            
+            if(optimal > 0):
+                print('otima')
+                print(round(optimal,1))
+                print(certificate)
+                print(result)
             return
     else:
         Dual(c, a, b, certificate, operations, optimal)

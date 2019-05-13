@@ -34,6 +34,7 @@ def Pivotate(which_row, which_column, c, a, b, certificate, operations, optimal)
     for i in range(len(a[which_row])):
         if(a[which_row][i] != 0):
             a[which_row][i] = a[which_row][i]/pivot
+            
     if(SHOW_OUTPUTS): print(a)
     
     if(SHOW_OUTPUTS): print("Iterate b[{}] over the pivot: {}".format(which_row, pivot))
@@ -53,22 +54,25 @@ def Pivotate(which_row, which_column, c, a, b, certificate, operations, optimal)
     if(SHOW_OUTPUTS): print("The value: {} will be use to set 0 on c[{}] -> {}".format(value, which_column, c[which_column]))
     for i in range(len(a[which_row])):
         if(a[which_row][i] != 0):
-            c[i] += a[which_row][i] * value
+            c[i] = (c[i] + (a[which_row][i] * value))
     
-    optimal += b[which_row] * value
+    print("b[which_row] = {} * value = {}".format(b[which_row], value))
+    print("Antes: {}".format(optimal))
+    optimal = optimal + (b[which_row] * value)
+    if(SHOW_OUTPUTS):  print("Partial optimal: {}".format(optimal))
     
     for i in range(len(certificate)):
-        certificate[i] += operations[which_row][i] * value
+        certificate[i] = (certificate[i] + (operations[which_row][i] * value))
         
     for i in range(len(a)):
         if(i != which_row):
             if(a[i][which_column] != 0):
-                value = (a[i][which_column]/a[which_row][which_column]) * -1
+                value = ((a[i][which_column]/a[which_row][which_column]) * -1)
                 
                 for j in range(len(a[0])):
-                    a[i][j] += (a[which_row][j] * value)
+                    a[i][j] = (a[i][j] + (a[which_row][j] * value))
             
-                b[i] += (b[which_row] * value)
+                b[i] = (b[i] + (b[which_row] * value))
                     
     return(c, a, b, certificate, operations, optimal)
     
@@ -112,38 +116,11 @@ def ConvertToStandardForm(r, v, c, a, b):
 def Primal(c, a, b, certificate, operations, optimal):
     if(SHOW_OUTPUTS): print("Starting primal")
     
-    c_index = 0
-    plus_one = True
-    while (c_index < len(c)):    
-        if(SHOW_OUTPUTS): ShowTableau(c, a, b, certificate, optimal)
-        
-        if(c[c_index] < 0 ):
-            if(SHOW_OUTPUTS): print("Running tableau for c[{}]".format(c_index))
-            lower = LOWER_VALUE
-            for i in range(len(b)):
-                if(b[i][0] != 0):
-                    if(SHOW_OUTPUTS): print("Minimizing: {}/{}".format(b[i][0],a[i][c_index]))
-                    if(a[i][c_index] != 0 and b[i][0]/a[i][c_index] > 0 and b[i][0]/a[i][c_index] < lower):
-                        lower = b[i][0]/a[i][c_index]
-                        which_row = i
-                        which_column = c_index
-                        
-            if(lower < 0 or lower == 10000):
-                print("ilimitada \n {} \n {}".format(b, certificate))
-                break
-                
-            
-            if(SHOW_OUTPUTS): print("Lower value is {} on row #{}".format(lower, which_row))
-            c, a, b, certificate, operations, optimal = Pivotate(which_row, which_column, c, a, b, certificate, operations, optimal)
-            c_index = 0
-            plus_one = False
-        if(plus_one): 
-            c_index += 1
-        else:
-            plus_one = True
+    if(SHOW_OUTPUTS): print("Looking for lower negative value on C[]: {}".format(c))
+    lower_c_value_index = min(c)
+    print(lower_c_value_index)
     
-    if(c_index == len(c) and optimal > 0):
-        print("otima \n {} \n {} \n {}".format(optimal, b, certificate))
+    return(c, a, b, certificate, operations, optimal, viable_bases)
     
     
 def Dual(c, a, b, certificate, operations, optimal):   
@@ -208,11 +185,43 @@ def Auxiliar(r, v, c, a, b):
     count = 0
     
     for i in inerval:
-        Pivotate(count, len(aux_a[0]) - r + count, aux_c, aux_a, b, aux_certificate, operations, aux_optimal)
+        aux_c, aux_a, b, aux_certificate, operations, aux_optimal = Pivotate(count, len(aux_a[0]) - r + count, aux_c, aux_a, b, aux_certificate, operations, aux_optimal)
         count += 1
     
     if(SHOW_OUTPUTS): print("New tableau on canonical form")
     if(SHOW_OUTPUTS): ShowTableau(aux_c, aux_a, b, aux_certificate, aux_optimal)
+        
+    aux_c, aux_a, b, aux_certificate, operations, aux_optimal, viable_bases = Primal(aux_c, aux_a, b, aux_certificate, operations, aux_optimal)
+    
+    if(SHOW_OUTPUTS): print("Result of auxiliar")
+    if(SHOW_OUTPUTS): ShowTableau(aux_c, aux_a, b, aux_certificate, aux_optimal)
+    if(SHOW_OUTPUTS): print("Bases: {}".format(viable_bases)) 
+        
+    if(SHOW_OUTPUTS): print("Using the result of auxiliar on original")
+            
+    certificate = [0] * r
+    operations = Identity(r)
+    
+    original = [ [ 0 for i in range(len(c)) ] for j in range(r) ] 
+        
+    for i in range(len(original)):
+        for j in range(len(c)):
+            original[i][j] = aux_a[i][j]
+    
+    if(SHOW_OUTPUTS): ShowTableau(c, original, b, certificate, optimal)
+        
+    count = 0
+    
+    for i in viable_bases:
+        c, original, b, certificate, operations, optimal = Pivotate(i[0], i[1], c, original, b, certificate, operations, aux_optimal)
+        count += 1
+    
+    if(SHOW_OUTPUTS): print("Original tableau on canonical form")
+    if(SHOW_OUTPUTS): ShowTableau(c, original, b, certificate, optimal)
+        
+    c, original, b, certificate, operations, optimal, viable_bases = Primal(c, original, b, certificate, operations, optimal)
+    
+    if(SHOW_OUTPUTS): ShowTableau(c, original, b, certificate, optimal)
     
     return
     
@@ -237,12 +246,9 @@ def SimplexTableau(r, v, c, a, b):
         Dual(c, a, b, certificate, operations, optimal)
         return
     
-#     certificate, operations, a , c = ConvertToStandardForm(r, v, c, a, b)
-#     optimal = 0
-
-r = 2 
-v = 4
-c = [5, -2, 1, -1]
-a = [[1, 4, 1, -1],[-2, -1, -3, 3]]
-b = [6,-2]
+r = 3
+v = 3
+c = [2,4,8]
+a = [[1,0,0],[0,1,0],[0,0,1]]
+b = [1,1,1]
 SimplexTableau(r,v,c,a,b)

@@ -316,8 +316,14 @@ def SimplexTableau(r, v, c, a, b):
             if(optimal > 0):
                 print('otima')
                 print(round(optimal,1))
-                print(result)
-                print(certificate)
+
+                for i in result:
+                    print(i, end = " ")
+
+                print("")
+
+                for i in certificate:
+                    print(i, end = " ")
             return
     else:
         Dual(c, a, b, certificate, operations, optimal)

@@ -2,7 +2,7 @@ SHOW_OUTPUTS = False
 LOWER_VALUE = 10000
 PRECISION = 4
 
-def ShowTableau(c, a, b, certificate, optimal):
+def ShowTableau(c, a, b, certificate, optimal, operations = []):
     print("\n")
     print("c[]: {}".format(c))
 
@@ -14,6 +14,7 @@ def ShowTableau(c, a, b, certificate, optimal):
 
     print("b[] : {}".format(b))
     print("certificate[] : {}".format(certificate))
+    print("Operations: {}".format(operations))
     print("Optimal : {}".format(optimal))
     print("\n")
 
@@ -133,6 +134,8 @@ def Primal(c, a, b, certificate, operations, optimal):
         if(SHOW_OUTPUTS): print("Running tableau for c[{}]".format(lower_c_value_index))
 
         lower = LOWER_VALUE
+        which_row = -1
+        which_column = -1
 
         for i in range(len(b)):
             if(b[i] != 0):
@@ -151,6 +154,9 @@ def Primal(c, a, b, certificate, operations, optimal):
                         which_column = lower_c_value_index
 
         if(SHOW_OUTPUTS): print("Lower value is {} on row #{}".format(lower, which_row))
+
+        if(which_row == -1 or which_column == -1):
+            return(c,a,b,certificate,operations,0,viable_bases)
 
         viable_bases.append((which_row,which_column))
         c, a, b, certificate, operations, optimal = Pivotate(which_row, which_column, c, a, b, certificate, operations, optimal)
@@ -199,7 +205,7 @@ def Dual(c, a, b, certificate, operations, optimal):
             plus_one = True
     if(SHOW_OUTPUTS): ShowTableau(c, a, b, certificate, optimal)
 
-def Auxiliar(r, v, c, a, b):
+def Auxiliar(r, v, c, a, b, all_negative_b):
     if(SHOW_OUTPUTS): print("Starting Primal method with auxiliar matrix")
 
     certificate, operations, a , c = ConvertToStandardForm(r, v, c, a, b)
@@ -222,7 +228,7 @@ def Auxiliar(r, v, c, a, b):
         aux_a[i] = aux_a[i] + aux[i]
 
     if(SHOW_OUTPUTS): print("New tableau with auxiliar matrix")
-    if(SHOW_OUTPUTS): ShowTableau(aux_c, aux_a, b, aux_certificate, aux_optimal)
+    if(SHOW_OUTPUTS): ShowTableau(aux_c, aux_a, b, aux_certificate, aux_optimal, operations)
 
     inerval = range(len(aux_a[0]) - r - 1,len(aux_a[0]) - 1)
     count = 0
@@ -239,6 +245,17 @@ def Auxiliar(r, v, c, a, b):
     if(SHOW_OUTPUTS): print("Result of auxiliar")
     if(SHOW_OUTPUTS): ShowTableau(aux_c, aux_a, b, aux_certificate, aux_optimal)
     if(SHOW_OUTPUTS): print("Bases: {}".format(viable_bases))
+
+    if(aux_optimal < 0):
+        print("inviavel")
+        if(all_negative_b):
+            l = [x * -1 for x in aux_certificate]
+            for i in l:
+                print(i, end=" ")
+        else:
+            for i in aux_certificate:
+                print(i, end=" ")
+        return
 
     if(SHOW_OUTPUTS): print("Using the result of auxiliar on original")
 
@@ -263,6 +280,19 @@ def Auxiliar(r, v, c, a, b):
     if(SHOW_OUTPUTS): ShowTableau(c, original, b, certificate, optimal)
 
     c, original, b, certificate, operations, optimal, viable_bases = Primal(c, original, b, certificate, operations, optimal)
+    if (len(viable_bases) <= 0):
+        print("ilimitada")
+        result = PrepareResult(v, c, a, b, viable_bases)
+        for i in result:
+            print(i, end=" ")
+
+        print("")
+
+        unboundness_certificate = [1] * v
+        for i in unboundness_certificate:
+            print(i, end=" ")
+
+        return
     result = PrepareResult(v,c,a,b,viable_bases)
     for i in range(len(certificate)):
         certificate[i] = round(certificate[i],1)
@@ -272,7 +302,7 @@ def Auxiliar(r, v, c, a, b):
         print(round(optimal,1))
         print(result)
         print(certificate)
-    return
+        return
 
     if(SHOW_OUTPUTS): ShowTableau(c, original, b, certificate, optimal)
 
@@ -280,6 +310,27 @@ def Auxiliar(r, v, c, a, b):
 
 def PrepareResult(v,c,a,b,viable_bases):
     if(SHOW_OUTPUTS): print("Preparing result vector")
+
+    if(len(viable_bases) == 0):
+        if (SHOW_OUTPUTS): print("Defining bases for unlimited PL")
+        for j in range(v):
+            if (SHOW_OUTPUTS): print("Checking column {} from a[]".format(j))
+            possible_base_row = -1
+            possible_base_column = -1
+            one_count = 0
+            zero_cout = 0
+            for i in range(len(a)):
+                if (SHOW_OUTPUTS): print("Checking value {} on row {} from a[][{}]".format(a[i][j], i, j))
+                if(a[i][j] == 1):
+                    possible_base_row = i
+                    possible_base_column = j
+                    one_count += 1
+                if(a[i][j] == 0):
+                    zero_cout += 1
+            if(one_count == 1 and zero_cout == len(a) - 1):
+                viable_bases.append((possible_base_row, possible_base_column))
+
+
     result = [0] * v
 
     if(SHOW_OUTPUTS): print("Viable bases: {}".format(viable_bases))
@@ -302,12 +353,30 @@ def SimplexTableau(r, v, c, a, b):
         if(SHOW_OUTPUTS): print("c[] -> {} has a negative number, so we cannot use dual method.".format(c))
 
         if(any(n < 0 for n in b)):
-            Auxiliar(r, v, c, a, b)
+
+            all_negative_b = False
+
+            if(all(i < 0 for i in b)):
+                all_negative_b = True
+
+            Auxiliar(r, v, c, a, b, all_negative_b)
             return
         else:
             certificate, operations, a , c = ConvertToStandardForm(r, v, c, a, b)
             optimal = 0
             c, a, b, certificate, operations, optimal, viable_bases = Primal(c, a, b, certificate, operations, optimal)
+            if(len(viable_bases) <= 0):
+                print("ilimitada")
+                result = PrepareResult(v, c, a, b, viable_bases)
+                for i in result:
+                    print(i, end = " ")
+
+                print("")
+
+                unboundness_certificate = [1] * v
+                for i in unboundness_certificate:
+                    print(i, end=" ")
+                return
             result = PrepareResult(v,c,a,b,viable_bases)
 
             for i in range(len(certificate)):

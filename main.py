@@ -1,5 +1,5 @@
 import logging
-import tableau as t
+from tableau import Tableau
 
 logging.basicConfig(level=logging.INFO)
 
@@ -42,9 +42,9 @@ def main():
     logging.info("Vector B[]: {}".format(b))
 
 
-    logging.info('\n ======================== \n =   STARTING SIMPLEX   = \n ========================')
+    tableau = Tableau(r, v, c, a, b)
+    tableau.print_tableau_nicely(tableau.tableau)
 
-    tableau = t(r, v, c, a, b)
-    print(t)
+    logging.info('\n ======================== \n =   STARTING SIMPLEX   = \n ========================')
 
 main()

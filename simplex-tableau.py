@@ -18,12 +18,6 @@ def ShowTableau(c, a, b, certificate, optimal, operations = []):
     print("Optimal : {}".format(optimal))
     print("\n")
 
-def Identity(n):
-    m=[[0 for x in range(n)] for y in range(n)]
-    for i in range(0,n):
-        m[i][i] = 1
-    return m
-
 def Pivotate(which_row, which_column, c, a, b, certificate, operations, optimal):
 
     if(SHOW_OUTPUTS): print("Starting pivotation on a[{},{}]".format(which_row, which_column))

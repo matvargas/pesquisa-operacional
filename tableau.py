@@ -1,6 +1,5 @@
 import logging
 from tools import Tools
-import pprint
 
 class Tableau:
 
@@ -28,7 +27,7 @@ class Tableau:
         self.tableau = convert_to_standard_form(self.restrictions, self.variables, self.costs, self.matrixA, self.vectorB)
 
     def print_tableau_nicely(self, tableau):
-        pp = pprint.PrettyPrinter(indent=4)
-        pp.pprint(tableau)
+        tableau_columns = tableau[0]
+        print(tableau_columns)
 
 

@@ -3,6 +3,10 @@ from tools import Tools
 
 class Tableau:
 
+    BORDER_KNOT = '+'
+    HORIZONTAL_BORDER = '-'
+    VERTICAL_BORDER = '|'
+
     def __init__(self, restrictions, variables, costs, matrixA, vectorB):
         self.restrictions = restrictions
         self.variables = variables

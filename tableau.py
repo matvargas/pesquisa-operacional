@@ -1,4 +1,5 @@
 import logging
+import numpy as np
 from tools import Tools
 
 class Tableau:
@@ -7,31 +8,42 @@ class Tableau:
     HORIZONTAL_BORDER = '-'
     VERTICAL_BORDER = '|'
 
-    def __init__(self, restrictions, variables, costs, matrixA, vectorB):
+    def __init__(self, restrictions, vars, costs, matrixA, vectorB):
         self.restrictions = restrictions
-        self.variables = variables
+        self.vars = vars
         self.costs = costs
         self.matrixA = matrixA
         self.vectorB = vectorB
 
-        def convert_to_standard_form(r, v, c, a, b):
+        def convert_to_standard_form(restrictions, vars, costs, a, b):
             logging.info('\n =================================== \n =   CONVERTING TO STANDARD FORM   = \n ===================================')
 
-            certificate = [0] * r
+            objective = 0
+            certificate = [0] * restrictions
+            operations = Tools.identity(restrictions)
+            gap_vars = Tools.identity(restrictions)
 
-            operations = Tools.identity(r)
-            gap_vars = Tools.identity(r)
+            costs = costs + [0] * restrictions
 
-            c = c + [0] * r
+            array_tableu = np.concatenate((certificate, costs), axis=0)
+            array_tableu = np.append(array_tableu, objective)
 
-            tableau_lines = []
+            for x in range(0, restrictions):
+                array_tableu = np.concatenate((array_tableu, np.array(operations[x])), axis=0)
+                array_tableu = np.concatenate((array_tableu, np.array(a[x])), axis=0)
+                array_tableu = np.concatenate((array_tableu, np.array(gap_vars[x])), axis=0)
+                array_tableu = np.append(array_tableu, b[x])
 
-            return (certificate, operations, a, c ,b)
+            matrix_tableu = array_tableu.reshape(restrictions + 1, len(certificate) + len(costs) + 1)
 
-        self.tableau = convert_to_standard_form(self.restrictions, self.variables, self.costs, self.matrixA, self.vectorB)
+            return(matrix_tableu)
 
-    def print_tableau_nicely(self, tableau):
-        tableau_columns = tableau[0]
-        print(tableau_columns)
+        self.matrix_tableau = convert_to_standard_form(self.restrictions, self.vars, self.costs, self.matrixA, self.vectorB)
+
+    def print_tableau(self, tableau):
+        print(tableau)
+
+
+
 
 

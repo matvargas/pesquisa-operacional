@@ -43,8 +43,8 @@ def main():
 
 
     tableau = Tableau(r, v, c, a, b)
-    tableau.print_tableau_nicely(tableau.tableau)
+    tableau.print_tableau(tableau.matrix_tableau)
 
-    logging.info('\n ======================== \n =   STARTING SIMPLEX   = \n ========================')
+    # logging.info('\n ======================== \n =   STARTING SIMPLEX   = \n ========================')
 
 main()

@@ -4,10 +4,6 @@ from tools import Tools
 
 class Tableau:
 
-    BORDER_KNOT = '+'
-    HORIZONTAL_BORDER = '-'
-    VERTICAL_BORDER = '|'
-
     def __init__(self, restrictions, vars, costs, matrixA, vectorB):
         self.restrictions = restrictions
         self.vars = vars
@@ -41,7 +37,17 @@ class Tableau:
         self.matrix_tableau = convert_to_standard_form(self.restrictions, self.vars, self.costs, self.matrixA, self.vectorB)
 
     def print_tableau(self, tableau):
-        print(tableau)
+
+        BORDER_KNOT = '+'
+        HORIZONTAL_BORDER = '-'
+        VERTICAL_BORDER = '|'
+
+        fmt = "g"
+        col_maxes = [max([len(("{:" + fmt + "}").format(x)) for x in col]) for col in tableau.T]
+        for x in tableau:
+            for i, y in enumerate(x):
+                print(("{:" + str(col_maxes[i]) + fmt + "}").format(y), end="  ")
+            print("")
 
 
 

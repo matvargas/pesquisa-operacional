@@ -41,12 +41,16 @@ class Tableau:
         BORDER_KNOT = '+'
         HORIZONTAL_BORDER = '-'
         VERTICAL_BORDER = '|'
+        vertical_count = 0
+        horizontal_count = 0
 
         fmt = "g"
         col_maxes = [max([len(("{:" + fmt + "}").format(x)) for x in col]) for col in tableau.T]
         for x in tableau:
+            print(VERTICAL_BORDER, end="  ")
             for i, y in enumerate(x):
                 print(("{:" + str(col_maxes[i]) + fmt + "}").format(y), end="  ")
+            print(VERTICAL_BORDER, end="")
             print("")
 
 

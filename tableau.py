@@ -12,7 +12,7 @@ class Tableau:
         self.vectorB = vectorB
 
         def convert_to_standard_form(restrictions, vars, costs, a, b):
-            logging.info('\n =================================== \n =   CONVERTING TO STANDARD FORM   = \n ===================================')
+            logging.debug('\n =================================== \n =   CONVERTING TO STANDARD FORM   = \n ===================================')
 
             objective = 0
             certificate = [0] * restrictions
@@ -20,6 +20,8 @@ class Tableau:
             gap_vars = Tools.identity(restrictions)
 
             costs = costs + [0] * restrictions
+
+            costs = [x * -1 for x in costs]
 
             array_tableu = np.concatenate((certificate, costs), axis=0)
             array_tableu = np.append(array_tableu, objective)

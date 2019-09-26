@@ -11,7 +11,7 @@ def ShowTableau(c, a, b, certificate, optimal, operations = []):
         for j in range(len(a[0])):
             print(a[i][j], end = '    ')
         print("")
-
+ 
     print("b[] : {}".format(b))
     print("certificate[] : {}".format(certificate))
     print("Operations: {}".format(operations))

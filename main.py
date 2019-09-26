@@ -1,5 +1,6 @@
 import logging
 from tableau import Tableau
+from simplex import Simplex
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -43,6 +44,7 @@ def main():
 
     tableau = Tableau(r, v, c, a, b)
     tableau.print_tableau(tableau.matrix_tableau)
+    Simplex.define_viable_bases(tableau.matrix_tableau)
 
     logging.debug('\n ======================== \n =   STARTING SIMPLEX   = \n ========================')
 

@@ -1,4 +1,5 @@
 import logging
+from tableau import Tableau
 from fractions import Fraction
 
 class Simplex:
@@ -44,13 +45,13 @@ class Simplex:
 
     def do_simplex(tableau):
         
-        viable_bases = Simplex.define_viable_bases(tableau)
+        viable_bases = Simplex.define_viable_bases(tableau.matrix_tableau)
 
         logging.debug('\n ======================== \n =   STARTING SIMPLEX   = \n ========================')
 
-        c = Simplex.get_tableau_costs_vector(tableau)
-        b = Simplex.get_tableau_b_vector(tableau)
-        a = Simplex.get_tableau_a_matrix(tableau)
+        c = Simplex.get_tableau_costs_vector(tableau.matrix_tableau)
+        b = Simplex.get_tableau_b_vector(tableau.matrix_tableau)
+        a = Simplex.get_tableau_a_matrix(tableau.matrix_tableau)
 
         count = 0
 
@@ -59,17 +60,15 @@ class Simplex:
         pivotal_line = -1
         pivotal_column = -1
 
-        while (count < len(c)):
-            if c[count] < 0:
-                for line in range(0, len(a)):
-                    if b[count] != 0 and a[line][count] != 0:
-                        if Fraction(b[count], a[line][count]) < lowest_value:
-                            lowest_value = Fraction(b[count], a[line][count])
-                            pivotal_line = line
-                            pivotal_column = count
-                logging.debug("Lower value under b/a is: {} on A[{}][{}]".format(lowest_value, pivotal_line, pivotal_column))
-                Simplex.pivotate(tableau, pivotal_line, pivotal_line, lowest_value)
+
+        while (any (n < 0 for n in Simplex.get_tableau_costs_vector(tableau.matrix_tableau)) and count < 4):
+            for cost_index, cost in enumerate(Simplex.get_tableau_costs_vector(tableau.matrix_tableau)):
+                if cost < 0:
+                    tableau.matrix_tableau[0][cost_index] = tableau.matrix_tableau[0][cost_index] * -1
+                    tableau.print_tableau(tableau.matrix_tableau)
             count += 1
+
+
 
 
 

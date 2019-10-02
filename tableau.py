@@ -46,6 +46,8 @@ class Tableau:
         vertical_count = 0
         horizontal_count = 0
 
+        print(" ")
+
         fmt = "g"
         col_maxes = [max([len(("{:" + fmt + "}").format(x)) for x in col]) for col in tableau.T]
         for x in tableau:

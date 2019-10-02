@@ -44,6 +44,6 @@ def main():
 
     tableau = Tableau(r, v, c, a, b)
     tableau.print_tableau(tableau.matrix_tableau)
-    Simplex.do_simplex(tableau.matrix_tableau)
+    Simplex.do_simplex(tableau)
 
 main()

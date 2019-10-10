@@ -63,10 +63,10 @@ class Simplex:
                     lowest_value = value
                     pivot_row = n
 
-        msg = ("Lowest value is {} on row #{} ").format(lowest_value, n + 1)
+        msg = ("Lowest value is {} on row #{} ").format(lowest_value, pivot_row + 1)
         logging.debug(msg)
 
-        return lowest_value, n
+        return lowest_value, pivot_row
 
 
 
@@ -95,7 +95,7 @@ class Simplex:
                 if cost < 0:
                     logging.debug('Index of cost = ' + str(cost_index) + ' cost '+ str(cost))
                     # Find the lower value over b[i]/a[c_index][i]
-                    lower_value = Simplex.define_lower_value(a_matrix[:, cost_index], b_vector)
+                    lower_value, pivotal_line = Simplex.define_lower_value(a_matrix[:, cost_index], b_vector)
             count += 1
 
 

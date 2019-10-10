@@ -52,6 +52,7 @@ class Simplex:
     def define_lower_value(a_column, b_vector):
 
         lowest_value = Fraction(99999999,1)
+        pivot_row = -1
 
         logging.debug('A column corresponding ' + str(a_column))
         for n in range(0, len(b_vector)):
@@ -60,7 +61,12 @@ class Simplex:
                 value = Fraction(b_vector[n], a_column[n])
                 if(value < lowest_value):
                     lowest_value = value
-        return 1
+                    pivot_row = n
+
+        msg = ("Lowest value is {} on row #{} ").format(lowest_value, n + 1)
+        logging.debug(msg)
+
+        return lowest_value, n
 
 
 

@@ -47,6 +47,14 @@ class Simplex:
         return viable_bases
 
 
+    def zeroing_column(value, column_index, pivotal_row,  matrix_tableau):
+
+        msg = ("Zeroing column {} from A[:][{}]").format(matrix_tableau[:, column_index], column_index)
+        logging.debug(msg)
+        for n in range(0, len(matrix_tableau[:, 0])):
+            if( n != pivotal_row and matrix_tableau[n][column_index] != 0 ):
+                v = Fraction(matrix_tableau[n][column_index]/value)
+                print(v)
 
 
     def define_lower_value(a_column, b_vector):
@@ -70,7 +78,7 @@ class Simplex:
 
 
 
-    def do_simplex( tableau):
+    def do_simplex(tableau):
         
         # viable_bases = Simplex.define_viable_bases(tableau.matrix_tableau)
 
@@ -85,17 +93,22 @@ class Simplex:
 
         count = 0
 
-        pivotal_line = -1
         pivotal_column = -1
-
 
         # Iterate over costs vector looking for < 0 values
         while (any (n < 0 for n in Simplex.get_tableau_costs_vector(tableau.matrix_tableau)) and count < 1):
             for cost_index, cost in enumerate(Simplex.get_tableau_costs_vector(tableau.matrix_tableau)):
                 if cost < 0:
-                    logging.debug('Index of cost = ' + str(cost_index) + ' cost '+ str(cost))
+
+                    logging.debug('Index of cost = ' + str(cost_index) + ' cost ' + str(cost))
+
                     # Find the lower value over b[i]/a[c_index][i]
-                    lower_value, pivotal_line = Simplex.define_lower_value(a_matrix[:, cost_index], b_vector)
+                    lower_value, pivotal_row = Simplex.define_lower_value(a_matrix[:, cost_index], b_vector)
+
+                    # Zeroing the pivotal column
+                    Simplex.zeroing_column(lower_value, pivotal_row, cost_index + c_starting_index, tableau.matrix_tableau)
+
+
             count += 1
 
 

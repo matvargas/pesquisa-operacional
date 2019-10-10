@@ -47,12 +47,12 @@ class Simplex:
         return viable_bases
 
 
-    def zeroing_column(value, column_index, pivotal_row,  matrix_tableau):
+    def zeroing_column(value, pivotal_row, column_index, matrix_tableau):
 
         msg = ("Zeroing column {} from A[:][{}]").format(matrix_tableau[:, column_index], column_index)
         logging.debug(msg)
         for n in range(0, len(matrix_tableau[:, 0])):
-            if( n != pivotal_row and matrix_tableau[n][column_index] != 0 ):
+            if n != pivotal_row and matrix_tableau[n][column_index] != 0:
                 v = Fraction(matrix_tableau[n][column_index]/value)
                 print(v)
 
@@ -65,13 +65,13 @@ class Simplex:
         logging.debug('A column corresponding ' + str(a_column))
         for n in range(0, len(b_vector)):
             logging.debug('b/a[n] = ' + str(b_vector[n]) + '/' + str(a_column[n]))
-            if(b_vector[n] != 0 and a_column[n] != 0):
+            if b_vector[n] != 0 and a_column[n] != 0:
                 value = Fraction(b_vector[n], a_column[n])
-                if(value < lowest_value):
+                if value < lowest_value:
                     lowest_value = value
                     pivot_row = n
 
-        msg = ("Lowest value is {} on row #{} ").format(lowest_value, pivot_row + 1)
+        msg = "Lowest value is {} on row #{} ".format(lowest_value, pivot_row + 1)
         logging.debug(msg)
 
         return lowest_value, pivot_row
@@ -96,7 +96,7 @@ class Simplex:
         pivotal_column = -1
 
         # Iterate over costs vector looking for < 0 values
-        while (any (n < 0 for n in Simplex.get_tableau_costs_vector(tableau.matrix_tableau)) and count < 1):
+        while any(n < 0 for n in Simplex.get_tableau_costs_vector(tableau.matrix_tableau)) and count < 1:
             for cost_index, cost in enumerate(Simplex.get_tableau_costs_vector(tableau.matrix_tableau)):
                 if cost < 0:
 
@@ -107,7 +107,6 @@ class Simplex:
 
                     # Zeroing the pivotal column
                     Simplex.zeroing_column(lower_value, pivotal_row, cost_index + c_starting_index, tableau.matrix_tableau)
-
 
             count += 1
 

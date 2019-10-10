@@ -7,6 +7,9 @@ class Simplex:
     def get_tableau_costs_vector(tableau):
         return tableau[0][int((len(tableau.T) - 1) / 3): len(tableau.T) - 1]
 
+    def get_tableau_costs_vector_starting_index(tableau):
+        return int((len(tableau.T) - 1) / 3)
+
     def get_tableau_b_vector(tableau):
         return tableau.T[len(tableau.T) - 1][1:]
 
@@ -29,7 +32,7 @@ class Simplex:
 
         is_b_positive = True
 
-        if any (n < 0 for n in tableau.T[len(tableau.T) - 1 ]):
+        if any (n < 0 for n in tableau.T[len(tableau.T) - 1]):
             is_b_positive = False
 
         viable_bases = []
@@ -43,29 +46,50 @@ class Simplex:
 
         return viable_bases
 
-    def do_simplex(tableau):
+
+
+
+    def define_lower_value(a_column, b_vector):
+
+        lowest_value = Fraction(99999999,1)
+
+        logging.debug('A column corresponding ' + str(a_column))
+        for n in range(0, len(b_vector)):
+            logging.debug('b/a[n] = ' + str(b_vector[n]) + '/' + str(a_column[n]))
+            if(b_vector[n] != 0 and a_column[n] != 0):
+                value = Fraction(b_vector[n], a_column[n])
+                if(value < lowest_value):
+                    lowest_value = value
+        return 1
+
+
+
+    def do_simplex( tableau):
         
-        viable_bases = Simplex.define_viable_bases(tableau.matrix_tableau)
+        # viable_bases = Simplex.define_viable_bases(tableau.matrix_tableau)
 
         logging.debug('\n ======================== \n =   STARTING SIMPLEX   = \n ========================')
 
-        c = Simplex.get_tableau_costs_vector(tableau.matrix_tableau)
-        b = Simplex.get_tableau_b_vector(tableau.matrix_tableau)
-        a = Simplex.get_tableau_a_matrix(tableau.matrix_tableau)
+        c_vector = Simplex.get_tableau_costs_vector(tableau.matrix_tableau)
+        b_vector = Simplex.get_tableau_b_vector(tableau.matrix_tableau)
+        a_matrix = Simplex.get_tableau_a_matrix(tableau.matrix_tableau)
+        c_starting_index = Simplex.get_tableau_costs_vector_starting_index(tableau.matrix_tableau)
+
+        logging.warn('!!!!!!! VERIFY THE STARTING INDEX OF COSTS VECTOR !!!!!!!!! --> ' + str(c_starting_index))
 
         count = 0
-
-        lowest_value = 99999999
 
         pivotal_line = -1
         pivotal_column = -1
 
 
-        while (any (n < 0 for n in Simplex.get_tableau_costs_vector(tableau.matrix_tableau)) and count < 4):
+        # Iterate over costs vector looking for < 0 values
+        while (any (n < 0 for n in Simplex.get_tableau_costs_vector(tableau.matrix_tableau)) and count < 1):
             for cost_index, cost in enumerate(Simplex.get_tableau_costs_vector(tableau.matrix_tableau)):
                 if cost < 0:
-                    tableau.matrix_tableau[0][cost_index] = tableau.matrix_tableau[0][cost_index] * -1
-                    tableau.print_tableau(tableau.matrix_tableau)
+                    logging.debug('Index of cost = ' + str(cost_index) + ' cost '+ str(cost))
+                    # Find the lower value over b[i]/a[c_index][i]
+                    lower_value = Simplex.define_lower_value(a_matrix[:, cost_index], b_vector)
             count += 1
 
 

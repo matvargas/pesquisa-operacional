@@ -50,7 +50,7 @@ class Simplex:
 
         msg = "Zeroing column {} from A[:][{}]".format(matrix_tableau[:, column_index], column_index)
         logging.debug(msg)
-        for n in range(0, len(matrix_tableau[:, 0])):
+        for n in range(len(matrix_tableau[:, 0])):
             if matrix_tableau[n][column_index] != 0:
                 v = Fraction(matrix_tableau[n][column_index]/value)
                 matrix_tableau[n][column_index] = Fraction(matrix_tableau[n][column_index], v)

@@ -48,20 +48,36 @@ class Simplex:
 
     def pivotating(value, pivotal_row, column_index, matrix_tableau):
 
-        msg = "Zeroing column {} from A[:][{}]".format(matrix_tableau[:, column_index], column_index)
-        logging.debug(msg)
-        for n in range(len(matrix_tableau[:, 0])):
-            if matrix_tableau[n][column_index] != 0:
+        logging.debug("Dividing pivotal row from A[{}][:]".format(pivotal_row))
+
+        Tableau.print_tableau(matrix_tableau)
+
+        for n in range(len(matrix_tableau[pivotal_row, :])):
+            if matrix_tableau[pivotal_row][n] != 0:
+                v = Fraction(matrix_tableau[pivotal_row][n] / value)
+                matrix_tableau[pivotal_row][n] = Fraction(matrix_tableau[pivotal_row][n], v)
+
+        logging.debug("Zeroing column {} from tableau[:][{}]".format(matrix_tableau[:, column_index], column_index))
+
+        for n in range(len(matrix_tableau[:, column_index])):
+            if n != pivotal_row and matrix_tableau[n][column_index] != 0:
                 v = Fraction(matrix_tableau[n][column_index]/value)
-                matrix_tableau[n][column_index] = Fraction(matrix_tableau[n][column_index], v)
+                v = v * -1
+                logging.debug("Value which will be used to zero tableau[{}][{}] is {} ".format(n, column_index, v))
+                matrix_tableau[n][column_index] = matrix_tableau[n][column_index] + v
 
-        msg = "Pivotating the other columns and rows of A matrix"
-        logging.debug(msg)
+        Tableau.print_tableau(matrix_tableau)
 
-        for row in range(len(matrix_tableau[:, :])):
-            if row != pivotal_row:
-                print(row)
+        for row in range(len(matrix_tableau[:, column_index])):
+            if row != pivotal_row and matrix_tableau[row][column_index] != 0:
+                v = Fraction(matrix_tableau[row][column_index]/value)
+                v = v * -1
 
+                for column in range(len(matrix_tableau[:, :])):
+                    logging.debug("Value which will be used to zero tableau[{}][{}] is {} ".format(row, column, v))
+                    matrix_tableau[n][column_index] = matrix_tableau[n][column_index] + v
+
+        Tableau.print_tableau(matrix_tableau)
 
     def define_lower_value(a_column, b_vector):
 
@@ -75,14 +91,14 @@ class Simplex:
                 value = Fraction(b_vector[n], a_column[n])
                 if value < lowest_value:
                     lowest_value = value
-                    pivot_row = n
+                    # Since we are using the A column excluding the costs vector value,
+                    # we need to shift the row number at the and plus 1
+                    pivot_row = n + 1
 
-        msg = "Lowest value is {} on row #{} ".format(lowest_value, pivot_row + 1)
+        msg = "Lowest value is {} on row #{} ".format(lowest_value, pivot_row)
         logging.debug(msg)
 
         return lowest_value, pivot_row
-
-
 
     def do_simplex(tableau):
         

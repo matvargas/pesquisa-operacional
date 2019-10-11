@@ -43,7 +43,7 @@ def main():
     logging.debug("Vector B[]: {}".format(b))
 
     tableau = Tableau(r, v, c, a, b)
-    tableau.print_tableau(tableau.matrix_tableau)
+    Tableau.print_tableau(tableau.matrix_tableau)
     Simplex.do_simplex(tableau)
 
 main()

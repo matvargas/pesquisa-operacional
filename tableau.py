@@ -38,7 +38,7 @@ class Tableau:
 
         self.matrix_tableau = convert_to_standard_form(self.restrictions, self.vars, self.costs, self.matrixA, self.vectorB)
 
-    def print_tableau(self, tableau):
+    def print_tableau(tableau):
 
         BORDER_KNOT = '+'
         HORIZONTAL_BORDER = '-'

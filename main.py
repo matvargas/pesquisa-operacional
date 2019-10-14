@@ -22,7 +22,7 @@ def main():
     c_list = list(c_input.split())
     c = []
     for i in range(len(c_list)):
-        c.append(int(c_list[i]))
+        c.append(float(c_list[i]))
 
     logging.debug("Costs vector: {}".format(c))
 
@@ -33,9 +33,9 @@ def main():
         a_row = []
         for j in range(len(line)):
             if(j < v):
-                a_row.append(int(line[j]))
+                a_row.append(float(line[j]))
             else:
-                b.append(int(line[j]))
+                b.append(float(line[j]))
         a.append(a_row)
 
 

@@ -14,12 +14,12 @@ class Tableau:
         def convert_to_standard_form(restrictions, vars, costs, a, b):
             logging.debug('\n =================================== \n =   CONVERTING TO STANDARD FORM   = \n ===================================')
 
-            objective = 0
-            certificate = [0] * restrictions
+            objective = 0.0
+            certificate = [0.0] * restrictions
             operations = Tools.identity(restrictions)
             gap_vars = Tools.identity(restrictions)
 
-            costs = costs + [0] * restrictions
+            costs = costs + [0.0] * restrictions
 
             costs = [x * -1 for x in costs]
 

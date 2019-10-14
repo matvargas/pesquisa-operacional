@@ -27,7 +27,7 @@ class Simplex:
 
         logging.debug('\n =================================== \n =   DEFINING VIABLE BASES   = \n ===================================')
 
-        # If B vector has all values greater than zero, because the entri format is always <=, 
+        # If B vector has all values greater than zero, because the entri format is always <=,
         # the base will be the matrix formed by gap_vars.
 
         is_b_positive = True
@@ -46,36 +46,28 @@ class Simplex:
 
         return viable_bases
 
-    def pivotating(value, pivotal_row, column_index, matrix_tableau):
+    def pivotating(value, pivotal_row, cost_index, matrix_tableau):
 
-        logging.debug("Dividing pivotal row from A[{}][:]".format(pivotal_row))
-
-        Tableau.print_tableau(matrix_tableau)
+        logging.debug("Dividing pivotal row from A[{}][:] by {}".format(pivotal_row, value))
 
         for n in range(len(matrix_tableau[pivotal_row, :])):
             if matrix_tableau[pivotal_row][n] != 0:
-                v = Fraction(matrix_tableau[pivotal_row][n] / value)
-                matrix_tableau[pivotal_row][n] = Fraction(matrix_tableau[pivotal_row][n], v)
-
-        logging.debug("Zeroing column {} from tableau[:][{}]".format(matrix_tableau[:, column_index], column_index))
-
-        for n in range(len(matrix_tableau[:, column_index])):
-            if n != pivotal_row and matrix_tableau[n][column_index] != 0:
-                v = Fraction(matrix_tableau[n][column_index]/value)
-                v = v * -1
-                logging.debug("Value which will be used to zero tableau[{}][{}] is {} ".format(n, column_index, v))
-                matrix_tableau[n][column_index] = matrix_tableau[n][column_index] + v
+                x = Fraction(matrix_tableau[pivotal_row][n] / value)
+                matrix_tableau[pivotal_row][n] = Fraction(matrix_tableau[pivotal_row][n], x)
 
         Tableau.print_tableau(matrix_tableau)
 
-        for row in range(len(matrix_tableau[:, column_index])):
-            if row != pivotal_row and matrix_tableau[row][column_index] != 0:
-                v = Fraction(matrix_tableau[row][column_index]/value)
-                v = v * -1
+        logging.debug("Pivotating matrix over value {} on A[{}][{}]".format(value, pivotal_row, cost_index))
 
-                for column in range(len(matrix_tableau[:, :])):
-                    logging.debug("Value which will be used to zero tableau[{}][{}] is {} ".format(row, column, v))
-                    matrix_tableau[n][column_index] = matrix_tableau[n][column_index] + v
+        for row in range(len(matrix_tableau[:])):
+
+            if row != pivotal_row:
+                v = Fraction(matrix_tableau[row, cost_index], matrix_tableau[pivotal_row, cost_index]) * -1
+
+                logging.debug("Adding {} on row {} of tableau".format(v, row))
+
+                for column in range(len(matrix_tableau[0, :])):
+                    matrix_tableau[row][column] = matrix_tableau[row][column] + (matrix_tableau[pivotal_row][column] * v)
 
         Tableau.print_tableau(matrix_tableau)
 
@@ -101,7 +93,7 @@ class Simplex:
         return lowest_value, pivot_row
 
     def do_simplex(tableau):
-        
+
         # viable_bases = Simplex.define_viable_bases(tableau.matrix_tableau)
 
         logging.debug('\n ======================== \n =   STARTING SIMPLEX   = \n ========================')
@@ -118,7 +110,7 @@ class Simplex:
         pivotal_column = -1
 
         # Iterate over costs vector looking for < 0 values
-        while any(n < 0 for n in Simplex.get_tableau_costs_vector(tableau.matrix_tableau)) and count < 1:
+        while any(n < 0 for n in Simplex.get_tableau_costs_vector(tableau.matrix_tableau)):
             for cost_index, cost in enumerate(Simplex.get_tableau_costs_vector(tableau.matrix_tableau)):
                 if cost < 0:
 
@@ -129,8 +121,6 @@ class Simplex:
 
                     # Pivotating
                     Simplex.pivotating(lower_value, pivotal_row, cost_index + c_starting_index, tableau.matrix_tableau)
-
-            count += 1
 
 
 

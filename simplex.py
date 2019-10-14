@@ -46,15 +46,15 @@ class Simplex:
 
         return viable_bases
 
-    def pivotating(lowest_value, pivotal_row, cost_index, matrix_tableau):
+    def pivotating(pivotal_row, cost_index, matrix_tableau):
 
-        value = matrix_tableau[pivotal_row][cost_index]
+        value = Fraction(matrix_tableau[pivotal_row][cost_index])
 
         logging.debug("Dividing pivotal row from A[{}][:] by {}".format(pivotal_row, value))
 
         for n in range(len(matrix_tableau[pivotal_row, :])):
             if matrix_tableau[pivotal_row][n] != 0:
-                matrix_tableau[pivotal_row][n] = matrix_tableau[pivotal_row][n]/value
+                matrix_tableau[pivotal_row][n] = Fraction(matrix_tableau[pivotal_row][n])/Fraction(value)
 
         Tableau.print_tableau(matrix_tableau)
 
@@ -63,12 +63,12 @@ class Simplex:
         for row in range(len(matrix_tableau[:])):
 
             if row != pivotal_row:
-                v = (matrix_tableau[row, cost_index]/matrix_tableau[pivotal_row, cost_index]) * -1
+                v = (Fraction(matrix_tableau[row, cost_index])/Fraction(matrix_tableau[pivotal_row, cost_index])) * -1
 
                 logging.debug("Adding {} on row {} of tableau".format(v, row))
 
                 for column in range(len(matrix_tableau[0, :])):
-                    matrix_tableau[row][column] = matrix_tableau[row][column] + (matrix_tableau[pivotal_row][column] * v)
+                    matrix_tableau[row][column] = Fraction(matrix_tableau[row][column]) + Fraction((matrix_tableau[pivotal_row][column]) * v)
 
         Tableau.print_tableau(matrix_tableau)
 
@@ -76,24 +76,23 @@ class Simplex:
 
         logging.debug('\n ======================== \n =   DEFINIG LOWER VALUE   = \n ========================')
 
-        lowest_value = Fraction(99999999, 1)
+        lowest_value = 99999999
         pivot_row = -1
 
         logging.debug("A column corresponding {}".format(a_column))
         for n in range(0, len(b_vector)):
             logging.debug("b/a[n] = {}/{}".format(b_vector[n], a_column[n]))
             if b_vector[n] != 0 and a_column[n] != 0:
-                value = float(b_vector[n])/float(a_column[n])
-                if value < lowest_value:
+                value = Fraction(b_vector[n])/Fraction(a_column[n])
+                if 0 < value < lowest_value:
                     lowest_value = value
                     # Since we are using the A column excluding the costs vector value,
                     # we need to shift the row number at the and plus 1
                     pivot_row = n + 1
 
-        msg = "Lowest value is {} on row #{} ".format(lowest_value, pivot_row)
-        logging.debug(msg)
+        logging.debug("Lowest value is {} on row #{} ".format(lowest_value, pivot_row))
 
-        return lowest_value, pivot_row
+        return pivot_row
 
     def do_simplex(tableau):
 
@@ -117,10 +116,14 @@ class Simplex:
             for cost_index, cost in enumerate(Simplex.get_tableau_costs_vector(tableau.matrix_tableau)):
                 if cost < 0:
 
-                    logging.debug('Index of cost = {}, cost '.format(cost_index, cost))
+                    logging.debug('Index of cost on cost vector = {}, value {}'.format(cost_index, cost))
 
                     # Find the lower value over b[i]/a[c_index][i]
-                    lowest_value, pivotal_row = Simplex.define_lower_value(a_matrix[:, cost_index], b_vector)
+                    pivotal_row = Simplex.define_lower_value(a_matrix[:, cost_index], b_vector)
+
+                    if pivotal_row == -1:
+                        logging.debug("Could not find positive relation b over A[][cost_index], so the PL is unlimited")
+                        return
 
                     # Pivotating
-                    Simplex.pivotating(lowest_value, pivotal_row, cost_index + c_starting_index, tableau.matrix_tableau)
+                    Simplex.pivotating(pivotal_row, cost_index + c_starting_index, tableau.matrix_tableau)

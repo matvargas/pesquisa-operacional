@@ -14,12 +14,12 @@ class Tableau:
         def convert_to_standard_form(restrictions, vars, costs, a, b):
             logging.debug('\n =================================== \n =   CONVERTING TO STANDARD FORM   = \n ===================================')
 
-            objective = 0.0
-            certificate = [0.0] * restrictions
+            objective = 0
+            certificate = [0] * restrictions
             operations = Tools.identity(restrictions)
             gap_vars = Tools.identity(restrictions)
 
-            costs = costs + [0.0] * restrictions
+            costs = costs + [0] * restrictions
 
             costs = [x * -1 for x in costs]
 
@@ -32,30 +32,28 @@ class Tableau:
                 array_tableu = np.concatenate((array_tableu, np.array(gap_vars[x])), axis=0)
                 array_tableu = np.append(array_tableu, b[x])
 
-            matrix_tableu = array_tableu.reshape(restrictions + 1, len(certificate) + len(costs) + 1)
+            matrix_tableu = array_tableu.reshape(restrictions + 1, len(certificate) + len(costs) + 1).astype('object')
 
-            return(matrix_tableu)
+            return matrix_tableu
 
         self.matrix_tableau = convert_to_standard_form(self.restrictions, self.vars, self.costs, self.matrixA, self.vectorB)
 
     def print_tableau(tableau):
 
-        BORDER_KNOT = '+'
-        HORIZONTAL_BORDER = '-'
-        VERTICAL_BORDER = '|'
-        vertical_count = 0
-        horizontal_count = 0
+        print(tableau)
 
-        print(" ")
-
-        fmt = "g"
-        col_maxes = [max([len(("{:" + fmt + "}").format(x)) for x in col]) for col in tableau.T]
-        for x in tableau:
-            print(VERTICAL_BORDER, end="  ")
-            for i, y in enumerate(x):
-                print(("{:" + str(col_maxes[i]) + fmt + "}").format(y), end="  ")
-            print(VERTICAL_BORDER, end="")
-            print("")
+        # VERTICAL_BORDER = '|'
+        #
+        # print(" ")
+        #
+        # fmt = "g"
+        # col_maxes = [max([len(("{:" + fmt + "}").format(x)) for x in col]) for col in tableau.T]
+        # for x in tableau:
+        #     print(VERTICAL_BORDER, end="  ")
+        #     for i, y in enumerate(x):
+        #         print(("{:" + str(col_maxes[i]) + fmt + "}").format(y), end="  ")
+        #     print(VERTICAL_BORDER, end="")
+        #     print("")
 
 
 

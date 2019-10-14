@@ -32,12 +32,11 @@ def main():
         line = input().split()
         a_row = []
         for j in range(len(line)):
-            if(j < v):
+            if j < v :
                 a_row.append(float(line[j]))
             else:
                 b.append(float(line[j]))
         a.append(a_row)
-
 
     logging.debug("Matrix A[]: {}".format(a))
     logging.debug("Vector B[]: {}".format(b))

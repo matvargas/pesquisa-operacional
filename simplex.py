@@ -16,12 +16,11 @@ class Simplex:
     def get_tableau_a_matrix(tableau):
         return tableau[1:, int((len(tableau.T) - 1) / 3): len(tableau.T) - 1]
 
-    def pivotate(tableau, pivotal_line, pivotal_colum, pivot):
-        logging.debug('\n =================================== \n =   PIVOTATING   = \n ===================================')
+    def get_tableau_optimal(tableau):
+        return tableau[0, len(tableau[0, :]) - 1]
 
-        # Divide the pivotal line by pivot
-        # tableau = tableau[pivotal_line, :] / pivot
-
+    def get_certificate(tableau):
+        return tableau[0][0: int((len(tableau.T) - 1) / 3)]
 
     def define_viable_bases(tableau):
 
@@ -46,7 +45,7 @@ class Simplex:
 
         return viable_bases
 
-    def pivotating(pivotal_row, cost_index, matrix_tableau):
+    def pivotate(pivotal_row, cost_index, matrix_tableau):
 
         value = Fraction(matrix_tableau[pivotal_row][cost_index])
 
@@ -70,7 +69,7 @@ class Simplex:
                 for column in range(len(matrix_tableau[0, :])):
                     matrix_tableau[row][column] = Fraction(matrix_tableau[row][column]) + Fraction((matrix_tableau[pivotal_row][column]) * v)
 
-        Tableau.print_tableau(matrix_tableau)
+        return matrix_tableau
 
     def define_lower_value(a_column, b_vector):
 
@@ -100,7 +99,6 @@ class Simplex:
 
         logging.debug('\n ======================== \n =   STARTING SIMPLEX   = \n ========================')
 
-        c_vector = Simplex.get_tableau_costs_vector(tableau.matrix_tableau)
         b_vector = Simplex.get_tableau_b_vector(tableau.matrix_tableau)
         a_matrix = Simplex.get_tableau_a_matrix(tableau.matrix_tableau)
         c_starting_index = Simplex.get_tableau_costs_vector_starting_index(tableau.matrix_tableau)
@@ -126,4 +124,12 @@ class Simplex:
                         return
 
                     # Pivotating
-                    Simplex.pivotating(pivotal_row, cost_index + c_starting_index, tableau.matrix_tableau)
+                    tableau.matrix_tableau = Simplex.pivotate(pivotal_row, cost_index + c_starting_index, tableau.matrix_tableau)
+
+                    Tableau.print_tableau(tableau.matrix_tableau)
+
+        logging.debug("End iteration over tableau, showing the results")
+        print("otima")
+        print(Simplex.get_tableau_optimal(tableau.matrix_tableau))
+        print(Simplex.get_tableau_b_vector(tableau.matrix_tableau))
+        print(Simplex.get_certificate(tableau.matrix_tableau))

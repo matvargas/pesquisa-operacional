@@ -3,6 +3,7 @@ from tableau import Tableau
 from fractions import Fraction
 from tools import Tools
 import copy
+import numpy as np
 
 class Simplex:
 
@@ -39,8 +40,21 @@ class Simplex:
         # Creating the aditional columuns
         aditional_cols = Tools.identity(tableau.restrictions)
 
+        # Additional values on costs vector
+        aditional_costs = [1] * tableau.restrictions
 
+        extension_matrix = []
 
+        extension_matrix = np.insert(aditional_cols, 0, aditional_costs, 0)
+
+        for col_index in range(len(extension_matrix[0, :])):
+            matrix_aux = np.insert(matrix_aux,
+                                   len(tableau.matrix_tableau[0, :]) - 1 + col_index,
+                                   extension_matrix[:, col_index],
+                                   1)
+
+        logging.debug("The auxiliar matrix will be: ")
+        Tableau.print_tableau(matrix_aux)
 
     def show_results(tableau, bases, result):
         logging.debug("End iteration over tableau, showing the results")

@@ -193,8 +193,6 @@ class Simplex:
 
     def pivotate(pivotal_row, cost_index, matrix_tableau, bases):
 
-        print(pivotal_row, cost_index, matrix_tableau[pivotal_row][cost_index])
-
         value = Fraction(matrix_tableau[pivotal_row][cost_index])
 
         logging.debug("Dividing pivotal row from A[{}][:] by {}".format(pivotal_row, value))

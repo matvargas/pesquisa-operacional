@@ -28,8 +28,35 @@ class Simplex:
     def get_certificate(tableau):
         return tableau[0][0: int((len(tableau.T) - 1) / 3)]
 
-    def run_auxiliar_matrix_operations(tableau, bases):
-        logging.debug("Running auxiliar operations on aux matrix")
+    def define_bases(bases, row, column):
+
+        logging.debug("Defining bases on value ({},{})".format(row, column))
+
+        for i, base in enumerate(bases):
+            if base[0] == row and base[1] != column:
+                logging.debug("Removing base: {} from bases list: {}".format(base, bases))
+                bases.remove(base)
+                new_base = (row, column)
+                bases.append(new_base)
+                logging.debug("Inserting base: {} on bases list".format(new_base))
+                logging.debug("New bases list {} ".format(bases))
+                return
+            else:
+                new_base = (row, column)
+                bases.append(new_base)
+                logging.debug("Inserting base: {} on bases list".format(new_base))
+                logging.debug("New bases list {} ".format(bases))
+                return
+
+        if len(bases) == 0:
+            new_base = (row, column)
+            bases.append(new_base)
+            logging.debug("Inserting base: {} on bases list".format(new_base))
+            logging.debug("New bases list {} ".format(bases))
+            return
+
+    def prepare_auxiliar_matrix(tableau, bases):
+        logging.debug("Preparing auxiliar matrix for operations")
 
         # Make a copy of matrix to operate over without changing the original values
         matrix_aux = copy.copy(tableau.matrix_tableau)
@@ -53,8 +80,21 @@ class Simplex:
                                    extension_matrix[:, col_index],
                                    1)
 
+        tmp_row = 1
+        for col_index in range(len(matrix_aux[0, :]) - len(extension_matrix[0, :]),
+                               len(matrix_aux[0, :]) - 1):
+            Simplex.define_bases(bases, tmp_row, col_index)
+            tmp_row += 1
+
         logging.debug("The auxiliar matrix will be: ")
         Tableau.print_tableau(matrix_aux)
+
+        return matrix_aux, bases
+
+    def run_auxiliar_matrix_operations(matrix_aux, bases):
+        logging.debug("Running auxiliar matrix operations")
+
+
 
     def show_results(tableau, bases, result):
         logging.debug("End iteration over tableau, showing the results")
@@ -123,21 +163,10 @@ class Simplex:
 
             Tableau.print_tableau(tableau.matrix_tableau)
 
-            Simplex.run_auxiliar_matrix_operations(tableau, bases)
-
+            matrix_aux, bases = Simplex.prepare_auxiliar_matrix(tableau, bases)
+            Simplex.run_auxiliar_matrix_operations(matrix_aux, bases)
 
         return bases
-
-    def define_bases(bases, row, column):
-        for i, base in enumerate(bases):
-            if base[0] == row and base[1] != column:
-                logging.debug("Removing base: {} from bases list: {}".format(base, bases))
-                bases.remove(base)
-                new_base = (row, column)
-                bases.append(new_base)
-                logging.debug("Inserting base: {} on bases list".format(new_base))
-                logging.debug("New bases list {} ".format(bases))
-
 
     def pivotate(pivotal_row, cost_index, matrix_tableau, bases):
 

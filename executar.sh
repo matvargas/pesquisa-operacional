@@ -1,2 +1,2 @@
 #!/bin/bash
-python3 simplex-tableau.py < $1 > $2
+python3 main.py < $1 > $2

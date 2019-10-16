@@ -1,6 +1,7 @@
 import logging
 from tableau import Tableau
 from fractions import Fraction
+from tools import Tools
 
 class Simplex:
 
@@ -22,25 +23,34 @@ class Simplex:
     def get_certificate(tableau):
         return tableau[0][0: int((len(tableau.T) - 1) / 3)]
 
-    def show_results(matrix_tableau, bases, result):
+    def show_results(tableau, bases, result):
         logging.debug("End iteration over tableau, showing the results")
 
         if result == 'optimal':
             print("otima")
 
             if logging.getLogger().level == 10:
-                print(Simplex.get_tableau_optimal(matrix_tableau))
+                print(Simplex.get_tableau_optimal(tableau.matrix_tableau))
             else:
-                print(float(Simplex.get_tableau_optimal(matrix_tableau)))
+                print(float(Simplex.get_tableau_optimal(tableau.matrix_tableau)))
 
-            for value in Simplex.get_tableau_b_vector(matrix_tableau):
-                if logging.getLogger().level == 10:
-                    print(value, end=" ")
+            bases = Tools.Sort_Tuple(bases)
+
+            logging.debug("The final bases list was: {}".format(bases))
+
+            for value in bases:
+                if value[1] in range(Simplex.get_tableau_costs_vector_starting_index(tableau.matrix_tableau),
+                        Simplex.get_tableau_costs_vector_starting_index(tableau.matrix_tableau)
+                                          + len(tableau.costs)):
+                    if logging.getLogger().level == 10:
+                        print(Simplex.get_tableau_b_vector(tableau.matrix_tableau)[value[0] - 1], end=" ")
+                    else:
+                        print(float(Simplex.get_tableau_b_vector(tableau.matrix_tableau)[value[0] - 1]), end=" ")
                 else:
-                    print(float(value), end=" ")
+                    print("0.0", end="")
             print("")
 
-            for value in Simplex.get_certificate(matrix_tableau):
+            for value in Simplex.get_certificate(tableau.matrix_tableau):
                 if logging.getLogger().level == 10:
                     print(value, end=" ")
                 else:
@@ -174,4 +184,4 @@ class Simplex:
                     Tableau.print_tableau(tableau.matrix_tableau)
         result = 'optimal'
 
-        Simplex.show_results(tableau.matrix_tableau, bases, result)
+        Simplex.show_results(tableau, bases, result)

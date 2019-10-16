@@ -1,9 +1,11 @@
 import logging
 from tableau import Tableau
 from simplex import Simplex
+import sys
 
-logging.basicConfig(level=logging.DEBUG)
-
+if len(sys.argv) >= 2:
+    if sys.argv[1] == '-d':
+        logging.basicConfig(level=logging.DEBUG)
 
 def main():
 

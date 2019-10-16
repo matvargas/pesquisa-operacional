@@ -22,11 +22,36 @@ class Simplex:
     def get_certificate(tableau):
         return tableau[0][0: int((len(tableau.T) - 1) / 3)]
 
-    def define_viable_bases(tableau):
+    def show_results(matrix_tableau, bases, result):
+        logging.debug("End iteration over tableau, showing the results")
 
-        logging.debug('\n =================================== \n =   DEFINING VIABLE BASES   = \n ===================================')
+        if result == 'optimal':
+            print("otima")
 
-        # If B vector has all values greater than zero, because the entri format is always <=,
+            if logging.getLogger().level == 10:
+                print(Simplex.get_tableau_optimal(matrix_tableau))
+            else:
+                print(float(Simplex.get_tableau_optimal(matrix_tableau)))
+
+            for value in Simplex.get_tableau_b_vector(matrix_tableau):
+                if logging.getLogger().level == 10:
+                    print(value, end=" ")
+                else:
+                    print(float(value), end=" ")
+            print("")
+
+            for value in Simplex.get_certificate(matrix_tableau):
+                if logging.getLogger().level == 10:
+                    print(value, end=" ")
+                else:
+                    print(float(value), end=" ")
+            print("")
+
+    def define_initial_bases(tableau):
+
+        logging.debug('\n =================================== \n =   DEFINING INITIAL BASES   = \n ===================================')
+
+        # If B vector has all values greater than zero, because the entry format is always <=,
         # the base will be the matrix formed by gap_vars.
 
         is_b_positive = True
@@ -34,18 +59,33 @@ class Simplex:
         if any (n < 0 for n in tableau.T[len(tableau.T) - 1]):
             is_b_positive = False
 
-        viable_bases = []
+        bases = []
 
         if is_b_positive:
             logging.debug("B vector has only positive values")
-            viable_bases.extend(range(int((len(tableau.T) - 1)/3) + int((len(tableau.T) - 1)/3), len(tableau.T) - 1 ))
-            logging.debug("Viable bases: {}".format(viable_bases))
+            count = 1
+            for x in range(int((len(tableau.T) - 1)/3) + int((len(tableau.T) - 1)/3), len(tableau.T) - 1):
+                t = (count, x)
+                bases.append(t)
+                count += 1
+            logging.debug("Initial bases: {}".format(bases))
         else:
             logging.debug("B vector has at least one negative value")
 
-        return viable_bases
+        return bases
 
-    def pivotate(pivotal_row, cost_index, matrix_tableau):
+    def define_bases(bases, row, column):
+        for i, base in enumerate(bases):
+            if base[0] == row and base[1] != column:
+                logging.debug("Removing base: {} from bases list: {}".format(base, bases))
+                bases.remove(base)
+                new_base = (row, column)
+                bases.append(new_base)
+                logging.debug("Inserting base: {} on bases list".format(new_base))
+                logging.debug("New bases list {} ".format(bases))
+
+
+    def pivotate(pivotal_row, cost_index, matrix_tableau, bases):
 
         value = Fraction(matrix_tableau[pivotal_row][cost_index])
 
@@ -69,7 +109,9 @@ class Simplex:
                 for column in range(len(matrix_tableau[0, :])):
                     matrix_tableau[row][column] = Fraction(matrix_tableau[row][column]) + Fraction((matrix_tableau[pivotal_row][column]) * v)
 
-        return matrix_tableau
+        Simplex.define_bases(bases, pivotal_row, cost_index)
+
+        return matrix_tableau, bases
 
     def define_lower_value(a_column, b_vector):
 
@@ -95,15 +137,15 @@ class Simplex:
 
     def do_simplex(tableau):
 
-        # viable_bases = Simplex.define_viable_bases(tableau.matrix_tableau)
-
         logging.debug('\n ======================== \n =   STARTING SIMPLEX   = \n ========================')
+
+        bases = Simplex.define_initial_bases(tableau.matrix_tableau)
 
         b_vector = Simplex.get_tableau_b_vector(tableau.matrix_tableau)
         a_matrix = Simplex.get_tableau_a_matrix(tableau.matrix_tableau)
         c_starting_index = Simplex.get_tableau_costs_vector_starting_index(tableau.matrix_tableau)
 
-        logging.warn('!!!!!!! VERIFY THE STARTING INDEX OF COSTS VECTOR !!!!!!!!! --> {}'.format(c_starting_index))
+        logging.debug('!!!!!!! VERIFY THE STARTING INDEX OF COSTS VECTOR !!!!!!!!! --> {}'.format(c_starting_index))
 
         count = 0
 
@@ -121,15 +163,15 @@ class Simplex:
 
                     if pivotal_row == -1:
                         logging.debug("Could not find positive relation b over A[][cost_index], so the PL is unlimited")
+                        print("inviavel")
                         return
 
                     # Pivotating
-                    tableau.matrix_tableau = Simplex.pivotate(pivotal_row, cost_index + c_starting_index, tableau.matrix_tableau)
+                    tableau.matrix_tableau, bases = Simplex.pivotate(pivotal_row,
+                                                              cost_index + c_starting_index,
+                                                              tableau.matrix_tableau, bases)
 
                     Tableau.print_tableau(tableau.matrix_tableau)
+        result = 'optimal'
 
-        logging.debug("End iteration over tableau, showing the results")
-        print("otima")
-        print(Simplex.get_tableau_optimal(tableau.matrix_tableau))
-        print(Simplex.get_tableau_b_vector(tableau.matrix_tableau))
-        print(Simplex.get_certificate(tableau.matrix_tableau))
+        Simplex.show_results(tableau.matrix_tableau, bases, result)

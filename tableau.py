@@ -1,6 +1,7 @@
 import logging
 import numpy as np
 from tools import Tools
+from fractions import Fraction
 
 class Tableau:
 
@@ -40,12 +41,22 @@ class Tableau:
 
     def print_tableau(tableau):
 
-        print(tableau)
+        if logging.getLogger().level != 10:
+            return
 
-        # VERTICAL_BORDER = '|'
-        #
+        # print(tableau)
+
+        VERTICAL_BORDER = '|'
+
+        for x in range(len(tableau[:, 0])):
+            print(VERTICAL_BORDER, end="  ")
+            for y in range(len(tableau[0, :])):
+                print(tableau[x, y], end=" ")
+            print(VERTICAL_BORDER, end="")
+            print("")
+
+
         # print(" ")
-        #
         # fmt = "g"
         # col_maxes = [max([len(("{:" + fmt + "}").format(x)) for x in col]) for col in tableau.T]
         # for x in tableau:
@@ -54,6 +65,9 @@ class Tableau:
         #         print(("{:" + str(col_maxes[i]) + fmt + "}").format(y), end="  ")
         #     print(VERTICAL_BORDER, end="")
         #     print("")
+
+
+
 
 
 

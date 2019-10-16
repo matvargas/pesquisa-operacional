@@ -4,6 +4,7 @@ from fractions import Fraction
 from tools import Tools
 import copy
 import numpy as np
+import sys
 
 class Simplex:
 
@@ -28,6 +29,9 @@ class Simplex:
     def get_certificate(tableau):
         return tableau[0][0: int((len(tableau.T) - 1) / 3)]
 
+    def get_optimal(matrix_tableau):
+        return matrix_tableau[0][len(matrix_tableau[0, :]) - 1]
+
     def define_bases(bases, row, column):
 
         logging.debug("Defining bases on value ({},{})".format(row, column))
@@ -43,10 +47,13 @@ class Simplex:
                 return
             else:
                 new_base = (row, column)
-                bases.append(new_base)
-                logging.debug("Inserting base: {} on bases list".format(new_base))
-                logging.debug("New bases list {} ".format(bases))
-                return
+                if new_base not in bases:
+                    bases.append(new_base)
+                    logging.debug("Inserting base: {} on bases list".format(new_base))
+                    logging.debug("New bases list {} ".format(bases))
+                    return
+                else:
+                    logging.debug("Base: {} already on bases list".format(new_base))
 
         if len(bases) == 0:
             new_base = (row, column)
@@ -79,11 +86,10 @@ class Simplex:
                                    len(tableau.matrix_tableau[0, :]) - 1 + col_index,
                                    extension_matrix[:, col_index],
                                    1)
-
         tmp_row = 1
-        for col_index in range(len(matrix_aux[0, :]) - len(extension_matrix[0, :]),
+        for index in range(len(matrix_aux[0, :]) - len(extension_matrix[0, :]) - 1,
                                len(matrix_aux[0, :]) - 1):
-            Simplex.define_bases(bases, tmp_row, col_index)
+            Simplex.define_bases(bases, tmp_row, index)
             tmp_row += 1
 
         logging.debug("The auxiliar matrix will be: ")
@@ -91,9 +97,26 @@ class Simplex:
 
         return matrix_aux, bases
 
-    def run_auxiliar_matrix_operations(matrix_aux, bases):
+    def run_auxiliar_matrix_operations(matrix_aux, bases, restrictions):
         logging.debug("Running auxiliar matrix operations")
 
+        max_iterations = len(bases) - 1
+
+        for i, base in enumerate(bases):
+            Simplex.pivotate(base[0], base[1], matrix_aux, bases)
+            if i >= max_iterations:
+                break
+
+        logging.debug("All operations over auxiliar are done!")
+        Tableau.print_tableau(matrix_aux)
+
+        if Simplex.get_optimal(matrix_aux) < 0:
+            logging.debug("Matrix Auxiliar optimal -> {} is lower than 0 so Original matrix is unfeasible".format(Simplex.get_optimal(matrix_aux)))
+            print("inviavel")
+            for value in range(0, restrictions):
+                print(matrix_aux[0, value], end=" ")
+            print("")
+            sys.exit()
 
 
     def show_results(tableau, bases, result):
@@ -164,11 +187,13 @@ class Simplex:
             Tableau.print_tableau(tableau.matrix_tableau)
 
             matrix_aux, bases = Simplex.prepare_auxiliar_matrix(tableau, bases)
-            Simplex.run_auxiliar_matrix_operations(matrix_aux, bases)
+            Simplex.run_auxiliar_matrix_operations(matrix_aux, bases, tableau.restrictions)
 
         return bases
 
     def pivotate(pivotal_row, cost_index, matrix_tableau, bases):
+
+        print(pivotal_row, cost_index, matrix_tableau[pivotal_row][cost_index])
 
         value = Fraction(matrix_tableau[pivotal_row][cost_index])
 

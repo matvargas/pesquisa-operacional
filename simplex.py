@@ -2,6 +2,7 @@ import logging
 from tableau import Tableau
 from fractions import Fraction
 from tools import Tools
+import copy
 
 class Simplex:
 
@@ -14,6 +15,9 @@ class Simplex:
     def get_tableau_b_vector(tableau):
         return tableau.T[len(tableau.T) - 1][1:]
 
+    def get_tableau_b_vector_whithout_optm(tableau):
+        return tableau.T[len(tableau.T) - 1][:]
+
     def get_tableau_a_matrix(tableau):
         return tableau[1:, int((len(tableau.T) - 1) / 3): len(tableau.T) - 1]
 
@@ -22,6 +26,21 @@ class Simplex:
 
     def get_certificate(tableau):
         return tableau[0][0: int((len(tableau.T) - 1) / 3)]
+
+    def run_auxiliar_matrix_operations(tableau, bases):
+        logging.debug("Running auxiliar operations on aux matrix")
+
+        # Make a copy of matrix to operate over without changing the original values
+        matrix_aux = copy.copy(tableau.matrix_tableau)
+
+        # On the auxiliar matrix, the costs of initial columns are zero
+        matrix_aux[0, :] *= 0
+
+        # Creating the aditional columuns
+        aditional_cols = Tools.identity(tableau.restrictions)
+
+
+
 
     def show_results(tableau, bases, result):
         logging.debug("End iteration over tableau, showing the results")
@@ -66,7 +85,7 @@ class Simplex:
 
         is_b_positive = True
 
-        if any (n < 0 for n in tableau.T[len(tableau.T) - 1]):
+        if any (n < 0 for n in tableau.matrix_tableau.T[len(tableau.matrix_tableau.T) - 1]):
             is_b_positive = False
 
         bases = []
@@ -74,13 +93,24 @@ class Simplex:
         if is_b_positive:
             logging.debug("B vector has only positive values")
             count = 1
-            for x in range(int((len(tableau.T) - 1)/3) + int((len(tableau.T) - 1)/3), len(tableau.T) - 1):
+            for x in range(int((len(tableau.matrix_tableau.T) - 1)/3) + int((len(tableau.matrix_tableau.T) - 1)/3), len(tableau.matrix_tableau.T) - 1):
                 t = (count, x)
                 bases.append(t)
                 count += 1
             logging.debug("Initial bases: {}".format(bases))
         else:
             logging.debug("B vector has at least one negative value")
+            logging.debug("Corverting b entry to positive by multiplying row by -1")
+
+            while any(n < 0 for n in Simplex.get_tableau_b_vector_whithout_optm(tableau.matrix_tableau)):
+                for entry_index, b_entry in enumerate(Simplex.get_tableau_b_vector_whithout_optm(tableau.matrix_tableau)):
+                    if b_entry < 0:
+                        tableau.matrix_tableau[entry_index, :] *= -1
+
+            Tableau.print_tableau(tableau.matrix_tableau)
+
+            Simplex.run_auxiliar_matrix_operations(tableau, bases)
+
 
         return bases
 
@@ -149,7 +179,7 @@ class Simplex:
 
         logging.debug('\n ======================== \n =   STARTING SIMPLEX   = \n ========================')
 
-        bases = Simplex.define_initial_bases(tableau.matrix_tableau)
+        bases = Simplex.define_initial_bases(tableau)
 
         b_vector = Simplex.get_tableau_b_vector(tableau.matrix_tableau)
         a_matrix = Simplex.get_tableau_a_matrix(tableau.matrix_tableau)

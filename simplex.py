@@ -110,17 +110,11 @@ class Simplex:
         logging.debug("All operations over auxiliar are done!")
         Tableau.print_tableau(matrix_aux)
 
-        if Simplex.get_optimal(matrix_aux) < 0:
-            logging.debug("Matrix Auxiliar optimal -> {} is lower than 0 so Original matrix is unfeasible".format(Simplex.get_optimal(matrix_aux)))
-            print("inviavel")
-            for value in range(0, restrictions):
-                print(matrix_aux[0, value], end=" ")
-            print("")
-            sys.exit()
+        return Simplex.get_certificate(matrix_aux)
 
 
-    def show_results(tableau, bases, result):
-        logging.debug("End iteration over tableau, showing the results")
+    def show_results(tableau, bases, result, alternative_certificate):
+        logging.debug("End iteration over tableau, showing the results for decision {}".format(result))
 
         if result == 'optimal':
             print("otima")
@@ -143,7 +137,7 @@ class Simplex:
                     else:
                         print(float(Simplex.get_tableau_b_vector(tableau.matrix_tableau)[value[0] - 1]), end=" ")
                 else:
-                    print("0.0", end="")
+                    print("0.0", end=" ")
             print("")
 
             for value in Simplex.get_certificate(tableau.matrix_tableau):
@@ -152,6 +146,27 @@ class Simplex:
                 else:
                     print(float(value), end=" ")
             print("")
+
+        if result == 'inviavel':
+            print("inviavel")
+
+            bases = Tools.Sort_Tuple(bases)
+
+            logging.debug("The final bases list was: {}".format(bases))
+
+            max_iterations = len(alternative_certificate) -1
+
+            for i, value in enumerate(alternative_certificate):
+                if max_iterations == 0:
+                    break
+                if logging.getLogger().level == 10:
+                    print(value, end=" ")
+                else:
+                    print(float(value), end=" ")
+                max_iterations -= 1
+            print("")
+
+
 
     def define_initial_bases(tableau):
 
@@ -166,6 +181,7 @@ class Simplex:
             is_b_positive = False
 
         bases = []
+        alternative_certificate = []
 
         if is_b_positive:
             logging.debug("B vector has only positive values")
@@ -187,9 +203,9 @@ class Simplex:
             Tableau.print_tableau(tableau.matrix_tableau)
 
             matrix_aux, bases = Simplex.prepare_auxiliar_matrix(tableau, bases)
-            Simplex.run_auxiliar_matrix_operations(matrix_aux, bases, tableau.restrictions)
+            alternative_certificate = Simplex.run_auxiliar_matrix_operations(matrix_aux, bases, tableau.restrictions)
 
-        return bases
+        return bases, alternative_certificate
 
     def pivotate(pivotal_row, cost_index, matrix_tableau, bases):
 
@@ -245,7 +261,14 @@ class Simplex:
 
         logging.debug('\n ======================== \n =   STARTING SIMPLEX   = \n ========================')
 
-        bases = Simplex.define_initial_bases(tableau)
+        bases, alternative_certificate = Simplex.define_initial_bases(tableau)
+
+        for base in bases:
+            if base[1] > len(tableau.matrix_tableau[0, :]):
+                bases = []
+                break
+
+        logging.debug("Bases: {}".format(bases))
 
         b_vector = Simplex.get_tableau_b_vector(tableau.matrix_tableau)
         a_matrix = Simplex.get_tableau_a_matrix(tableau.matrix_tableau)
@@ -269,8 +292,6 @@ class Simplex:
 
                     if pivotal_row == -1:
                         logging.debug("Could not find positive relation b over A[][cost_index], so the PL is unlimited")
-                        print("inviavel")
-                        return
 
                     # Pivotating
                     tableau.matrix_tableau, bases = Simplex.pivotate(pivotal_row,
@@ -278,6 +299,12 @@ class Simplex:
                                                               tableau.matrix_tableau, bases)
 
                     Tableau.print_tableau(tableau.matrix_tableau)
-        result = 'optimal'
 
-        Simplex.show_results(tableau, bases, result)
+        logging.debug("End iteration over tableau, optimal is {}".format(Simplex.get_optimal(tableau.matrix_tableau)))
+
+        if Simplex.get_optimal(tableau.matrix_tableau) < 0:
+            result = 'inviavel'
+        else:
+            result = 'optimal'
+
+        Simplex.show_results(tableau, bases, result, alternative_certificate)
